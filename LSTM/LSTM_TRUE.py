@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 
-
 # 定义Encoder类，继承自nn.Module
 class Encoder(nn.Module):
     def __init__(self, input_size, hidden_size, num_layers=1, dropout=0.0):

@@ -51,8 +51,8 @@ if __name__ == "__main__":
 
     hyperparameter = "_".join(hyperparameter)
     if load_model(hyperparameter) is None:   # 之前没有存model
-        encoder = Encoder(en_corpus_len, encoder_embed, encoder_hidden, 2, 0.1)
-        decoder = Decoder(zh_corpus_len, decoder_embed, decoder_hidden, 2, 0.1)
+        encoder = Encoder(en_corpus_len, encoder_embed, encoder_hidden)
+        decoder = Decoder(zh_corpus_len, decoder_embed, decoder_hidden)
         model = Seq2Seq(encoder, decoder, device)
         model = model.to(device)
     else:   # 使用model继续
