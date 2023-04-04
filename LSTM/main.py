@@ -22,7 +22,7 @@ if __name__ == "__main__":
                                                                  decoder_embed, decoder_hidden,
                                                                  step_epoch]))
 
-    device = "cuda:0" if torch.cuda.is_available() else "cpu"
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     # 读取从文件中读取句子
     en_data, zh_data = load_data("../translation2019zh_train_part.json", sentence_nums)
 
@@ -39,7 +39,7 @@ if __name__ == "__main__":
     zh_corpus_len = len(zh_word2index)
 
     batch_size = 512   # 一次喂多少数据
-    epoch = 200000    # 训练次数
+    epoch = 500    # 训练次数
 
     dataset = MyDataset(en_data, zh_data, en_word2index, zh_word2index)
     dataloader = DataLoader(dataset, batch_size, shuffle=False, collate_fn=dataset.batch_data_process)
@@ -51,7 +51,9 @@ if __name__ == "__main__":
 
     hyperparameter = "_".join(hyperparameter)
     if load_model(hyperparameter) is None:   # 之前没有存model
-        model = Seq2Seq(encoder, decoder, device)
+        encoder = Encoder(en_corpus_len, encoder_embed, encoder_hidden, 1, 0.0).to(device)
+        decoder = Decoder(zh_corpus_len, decoder_embed, decoder_hidden, 1, 0.0).to(device)
+        model = Seq2Seq(encoder, decoder)
         model = model.to(device)
     else:   # 使用model继续
         model_name = load_model(hyperparameter)
@@ -71,11 +73,11 @@ if __name__ == "__main__":
         print(start_epoch + e + 1)
         for en_index, zh_index in dataloader:
             loss = model(en_index, zh_index)
-            loss.backward()
+            loss.backward(torch.ones_like(loss))
             opt.step()
             opt.zero_grad()  # 将模型的参数梯度初始化为0
-        print('epoch=' + str(start_epoch+e+1) + " " + f"loss:{loss:.8f}")
-        loss_temp.append('epoch=' + str(start_epoch + e + 1) + " " + f"loss:{loss:.8f}")
+#        print('epoch=' + str(start_epoch+e+1) + " " + f"loss:{loss:.8f}")
+#        loss_temp.append('epoch=' + str(start_epoch + e + 1) + " " + f"loss:{loss:.8f}")
         if (e + 1) % step_epoch == 0:
             loss_file = open(hyperparameter + ".loss", "a+", encoding='utf-8')
             loss_file.write('\n'.join(loss_temp))
