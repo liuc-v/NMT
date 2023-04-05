@@ -39,7 +39,7 @@ if __name__ == "__main__":
     zh_corpus_len = len(zh_word2index)
 
     batch_size = 512   # 一次喂多少数据
-    epoch = 500    # 训练次数
+    epoch = 2000    # 训练次数
 
     dataset = MyDataset(en_data, zh_data, en_word2index, zh_word2index)
     dataloader = DataLoader(dataset, batch_size, shuffle=False, collate_fn=dataset.batch_data_process)

@@ -18,7 +18,7 @@ class Encoder(nn.Module):
 
         output, (hidden, cell) = self.lstm(embedded, (hidden, cell))
         # output: (batch_size, seq_len, hidden_size)
-        # hidden: (num_layers, batch_size, hidden_size) × 2
+        # hidden: (num_layers, batch_size, hidden_size)
         return output, (hidden, cell)
 
     def init_hidden_cell(self, batch_size):

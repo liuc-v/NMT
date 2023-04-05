@@ -47,33 +47,29 @@ def create_dict(sentences, max_word_num=100000000):   #
     return word2index, index2word
 
 
-def translate(sentence, en_word2index, zh_index2word, model):
-    device = "cuda:0" if torch.cuda.is_available() else "cpu"
-
+def translate(sentence, en_word2index, zh_index2word, model):   # 用forward函数可以很方便地进行翻译
     sentence = ["BOS"] + nltk.word_tokenize(sentence.lower()) + ["EOS"]
-
     for i, word in enumerate(sentence):   # 替换未知词
         if word not in en_word2index:
             sentence[i] = "UNK"
 
-    en_index = torch.tensor([[en_word2index[i] for i in sentence]], device=device)
+    en_index = torch.tensor([[en_word2index[i] for i in sentence]]).to(model.device)
+    hidden_cell = model.encoder.init_hidden_cell(1)  # 初试化
+    hidden_cell = tuple(t.to(model.device) for t in hidden_cell)  # 转移设备
+    en_output, (en_hidden, en_cell) = model.encoder(en_index, hidden_cell[0], hidden_cell[1])
+
+    de_hidden, de_cell = en_hidden, en_cell  # 初始化
+    de_input = torch.tensor([[zh_index2word.index("BOS")]]).to(model.device)
+
     result = []
-    encoder_hidden = model.encoder(en_index)
-    start_index = [i for i, x in enumerate(zh_index2word) if x == "BOS"]
-    decoder_input = torch.tensor([start_index], device=device)
-
-    decoder_hidden = encoder_hidden
     while True:
-        decoder_output, decoder_hidden = model.decoder(decoder_input, decoder_hidden)
-        pre = model.classifier(decoder_output)
-
-        w_index = int(torch.argmax(pre, dim=-1))
-        word = zh_index2word[w_index]
-
+        de_output, (de_hidden, de_cell) = model.decoder(de_input, de_hidden, de_cell)
+        index = de_output.argmax(dim=1)
+        word = zh_index2word[index]
         if word == "EOS" or len(result) > 200:
             break
-
         result.append(word)
-        decoder_input = torch.tensor([[w_index]], device=device)
+        de_input = torch.tensor([[index]]).to(model.device)
 
     print("译文: ", "".join(result))
+
