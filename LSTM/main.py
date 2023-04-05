@@ -1,6 +1,6 @@
 import torch
 from torch.utils.data import DataLoader
-
+import torch.nn as nn
 from load import load_model
 from sentence_processor import create_dict, translate, load_data
 from MyDataset import MyDataset
@@ -53,7 +53,7 @@ if __name__ == "__main__":
     if load_model(hyperparameter) is None:   # 之前没有存model
         encoder = Encoder(en_corpus_len, encoder_embed, encoder_hidden, 1, 0.0).to(device)
         decoder = Decoder(zh_corpus_len, decoder_embed, decoder_hidden, 1, 0.0).to(device)
-        model = Seq2Seq(encoder, decoder)
+        model = Seq2Seq(encoder, decoder, device)
         model = model.to(device)
     else:   # 使用model继续
         model_name = load_model(hyperparameter)
@@ -62,6 +62,7 @@ if __name__ == "__main__":
         model = model.to(device)
 
     opt = torch.optim.Adam(model.parameters(), lr=lr)
+    criterion = nn.CrossEntropyLoss()
 
     loss_file = open(hyperparameter + ".loss", "a+", encoding='utf-8')
     loss_file.seek(0)
@@ -72,12 +73,13 @@ if __name__ == "__main__":
     for e in range(epoch):
         print(start_epoch + e + 1)
         for en_index, zh_index in dataloader:
-            loss = model(en_index, zh_index)
-            loss.backward(torch.ones_like(loss))
+            output = model(en_index, zh_index)
+            loss = criterion(output[:, 1:].reshape(-1, zh_corpus_len), zh_index[:, 1:].reshape(-1))
+            loss.backward()
             opt.step()
             opt.zero_grad()  # 将模型的参数梯度初始化为0
-#        print('epoch=' + str(start_epoch+e+1) + " " + f"loss:{loss:.8f}")
-#        loss_temp.append('epoch=' + str(start_epoch + e + 1) + " " + f"loss:{loss:.8f}")
+        print('epoch=' + str(start_epoch+e+1) + " " + f"loss:{loss:.8f}")
+        loss_temp.append('epoch=' + str(start_epoch + e + 1) + " " + f"loss:{loss:.8f}")
         if (e + 1) % step_epoch == 0:
             loss_file = open(hyperparameter + ".loss", "a+", encoding='utf-8')
             loss_file.write('\n'.join(loss_temp))
