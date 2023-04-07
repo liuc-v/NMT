@@ -48,7 +48,6 @@ def create_dict(sentences, max_word_num=100000000):   #
 
 
 def translate(sentence, en_word2index, zh_index2word, model):   # 用forward函数可以很方便地进行翻译
-    sentence = ["BOS"] + nltk.word_tokenize(sentence.lower()) + ["EOS"]
     for i, word in enumerate(sentence):   # 替换未知词
         if word not in en_word2index:
             sentence[i] = "UNK"
@@ -61,15 +60,23 @@ def translate(sentence, en_word2index, zh_index2word, model):   # 用forward函�
     de_hidden, de_cell = en_hidden, en_cell  # 初始化
     de_input = torch.tensor([[zh_index2word.index("BOS")]]).to(model.device)
 
-    result = []
+    result = ["BOS"]
     while True:
         de_output, (de_hidden, de_cell) = model.decoder(de_input, de_hidden, de_cell)
         index = de_output.argmax(dim=1)
         word = zh_index2word[index]
         if word == "EOS" or len(result) > 200:
+            result.append("EOS")
             break
         result.append(word)
         de_input = torch.tensor([[index]]).to(model.device)
 
-    print("译文: ", "".join(result))
+    return result
 
+
+def get_scores(src_sentences, trg_sentences, en_word2index, zh_index2word, model):
+    total_score = 0.0
+    for i in range(len(src_sentences)):
+        result = translate(src_sentences[i], en_word2index, zh_index2word, model)
+        total_score += nltk.translate.bleu_score.sentence_bleu([trg_sentences[i]], result, (1, 0, 0, 0))
+    return total_score / len(src_sentences)

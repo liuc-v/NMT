@@ -2,7 +2,7 @@ import torch
 from torch.utils.data import DataLoader
 import torch.nn as nn
 from load import load_model
-from sentence_processor import create_dict, translate, load_data
+from sentence_processor import create_dict, translate, load_data, get_scores
 from MyDataset import MyDataset
 from LSTM import Encoder, Decoder, Seq2Seq
 
@@ -38,8 +38,8 @@ if __name__ == "__main__":
     en_corpus_len = len(en_word2index)
     zh_corpus_len = len(zh_word2index)
 
-    batch_size = 512   # 一次喂多少数据
-    epoch = 2000    # 训练次数
+    batch_size = 64   # 一次喂多少数据
+    epoch = 10000    # 训练次数
 
     dataset = MyDataset(en_data, zh_data, en_word2index, zh_word2index)
     dataloader = DataLoader(dataset, batch_size, shuffle=False, collate_fn=dataset.batch_data_process)
@@ -51,11 +51,13 @@ if __name__ == "__main__":
 
     hyperparameter = "_".join(hyperparameter)
     if load_model(hyperparameter) is None:   # 之前没有存model
+        print(hyperparameter)
         encoder = Encoder(en_corpus_len, encoder_embed, encoder_hidden, 1, 0.0).to(device)
         decoder = Decoder(zh_corpus_len, decoder_embed, decoder_hidden, 1, 0.0).to(device)
         model = Seq2Seq(encoder, decoder, device)
         model = model.to(device)
     else:   # 使用model继续
+        print(11111111111111111111111)
         model_name = load_model(hyperparameter)
         print(model_name)
         model = torch.load(model_name)
@@ -85,7 +87,7 @@ if __name__ == "__main__":
             loss_file.write('\n'.join(loss_temp))
             loss_file.close()
             loss_temp = []
-            torch.save(model, 'model_' + hyperparameter + '_' + str(e + 1 + start_epoch) + '.pth') # 保存模型参数
-    while True:
-        s = input("请输入英文: ")
-        translate(s, en_word2index, zh_index2word, model)
+            torch.save(model, 'model_' + hyperparameter + '_' + str(e + 1 + start_epoch) + '.pth')  # 保存模型参数
+            print(get_scores(en_data, zh_data, en_word2index, zh_index2word, model))
+
+    print(get_scores(en_data, zh_data, en_word2index, zh_index2word, model))
