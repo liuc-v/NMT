@@ -6,7 +6,7 @@ import nltk
 import torch
 
 
-def load_data(file_path, max_sentence_num=100000000):
+def load_data1(file_path, max_sentence_num=100000000):
     english_sentences = []
     chinese_sentences = []
     with open(file_path, 'r', encoding='utf-8') as f:
@@ -21,6 +21,18 @@ def load_data(file_path, max_sentence_num=100000000):
                 break
     return english_sentences, chinese_sentences
 
+
+def load_data2(file_path, max_sentence_num=100000000):
+    english_sentences = []
+    chinese_sentences = []
+    with open(file_path, 'r', encoding='utf-8') as f:
+        for i, line in enumerate(f):
+            if i < max_sentence_num:
+                english_sentences.append(["BOS"] + nltk.word_tokenize(sentence['english'].lower()) + ["EOS"])
+                chinese_sentences.append(["BOS"] + list(jieba.cut(sentence['chinese'], cut_all=False)) + ["EOS"])
+            else:
+                break
+    return english_sentences, chinese_sentences
 
 def create_dict(sentences, max_word_num=100000000):   #
     # 统计文本中每个词出现的频数，并用出现次数最多的max_words个词创建词典，

@@ -24,7 +24,7 @@ class PositionalEncoding(nn.Module):
         self.register_buffer('pe', pe)
 
     def forward(self, x):
-        # 将输入x与pe相加，即将位置信息编码到向量中
+        # 将输入x与pe相加，
         x = x + self.pe[:x.size(0), :]
         # 对结果进行dropout处理
         return self.dropout(x)
@@ -32,23 +32,25 @@ class PositionalEncoding(nn.Module):
 
 # Transformer模型定义
 class TransformerModel(nn.Module):
-    def __init__(self, input_vocab_size, output_vocab_size, d_model, n_head, num_layers, dim_feedforward, dropout=0.1):
+    def __init__(self, input_vocab_size, output_vocab_size, d_model, n_head, num_layers, dim_feedforward, device, dropout=0.1):
         super(TransformerModel, self).__init__()
 
         self.d_model = d_model
         self.n_head = n_head
         self.num_layers = num_layers
         self.dim_feedforward = dim_feedforward
+        self.device = device
 
         # 定义输入嵌入层
-        self.embedding = nn.Embedding(input_vocab_size, d_model)
+        self.encoder_embedding = nn.Embedding(input_vocab_size, d_model)
+        self.decoder_embedding = nn.Embedding(output_vocab_size, d_model)
         # 定义位置编码层
         self.pos_encoder = PositionalEncoding(d_model, dropout)
         # 定义Transformer编码器
-        encoder_layer = nn.TransformerEncoderLayer(d_model, n_head, dim_feedforward, dropout)
+        encoder_layer = nn.TransformerEncoderLayer(d_model, n_head, dim_feedforward, dropout, batch_first=True)
         self.transformer_encoder = nn.TransformerEncoder(encoder_layer, num_layers)
         # 定义Transformer解码器
-        decoder_layer = nn.TransformerDecoderLayer(d_model, n_head, dim_feedforward, dropout)
+        decoder_layer = nn.TransformerDecoderLayer(d_model, n_head, dim_feedforward, dropout, batch_first=True)
         self.transformer_decoder = nn.TransformerDecoder(decoder_layer, num_layers)
         # 定义输出全连接层
         self.fc = nn.Linear(d_model, output_vocab_size)
@@ -59,18 +61,19 @@ class TransformerModel(nn.Module):
     def init_weights(self):
         initrange = 0.1
         # 对嵌入层和全连接层的权重进行均匀分布初始化
-        self.embedding.weight.data.uniform_(-initrange, initrange)
+        self.encoder_embedding.weight.data.uniform_(-initrange, initrange)
+        self.decoder_embedding.weight.data.uniform_(-initrange, initrange)
         self.fc.bias.data.zero_()
         self.fc.weight.data.uniform_(-initrange, initrange)
 
     def forward(self, src, tgt, src_mask=None, tgt_mask=None, memory_mask=None):
         # 对源语言序列进行嵌入和位置编码
-        src = self.embedding(src) * math.sqrt(self.d_model)
+        src = self.encoder_embedding(src) * math.sqrt(self.d_model)
         src = self.pos_encoder(src)
         # 对源语言序列进行Transformer编码
         memory = self.transformer_encoder(src, src_mask)
         # 对目标语言序列进行嵌入和位置编码
-        tgt = self.embedding(tgt) * math.sqrt(self.d_model)
+        tgt = self.decoder_embedding(tgt) * math.sqrt(self.d_model)
         tgt = self.pos_encoder(tgt)
         # 对目标语言序列以及编码后的源语言序列进行Transformer解码
         output = self.transformer_decoder(tgt, memory, tgt_mask, memory_mask)

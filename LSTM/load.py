@@ -2,11 +2,11 @@ import os
 import re
 
 
-def load_model(parameter):
+def load_model(parameter, model_dir="../MODEL/LSTM/"):
     pattern = re.compile(rf"model_{parameter}_(\d+)\.pth")
     max_suffix = None
     max_file = None
-    for filename in os.listdir('./'):
+    for filename in os.listdir(model_dir):
         match = pattern.match(filename)
         if match:
             suffix = int(match.group(1))
@@ -14,7 +14,7 @@ def load_model(parameter):
                 max_suffix = suffix
                 max_file = filename
     if max_file:
-        return max_file
+        return model_dir + max_file
     else:
         return None
 
