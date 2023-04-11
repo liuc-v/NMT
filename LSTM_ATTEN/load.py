@@ -19,6 +19,20 @@ def load_model(parameter, model_dir=""):
         return None
 
 
+def load_model_eve(parameter, model_dir=""):  # 返回使用model
+    pattern = re.compile(rf"model_{parameter}_(\d+)\.pth")
+    max_suffix = None
+    max_file = None
+    results = []
+    for filename in os.listdir(model_dir):
+        match = pattern.match(filename)
+        if match:
+            results.append(filename)
+
+    return results
+
+
+
 def load_dict(hyperparameter):
     with open(hyperparameter+"re_word2index.txt", 'r') as f:
         content = f.readlines()

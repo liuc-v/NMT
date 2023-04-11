@@ -1,2 +1,2 @@
 sentence_nums, word_nums, lr, encoder_embedding_num, encoder_hidden_num, decoder_embedding_num, decoder_hidden_num, step_epoch, batch_size
-1000000 20000 0.0001 128 256 128 256 20 64
+2 20000 0.0001 256 512 256 512 200 256

@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 
 # 从文件中读取数据
-with open("100000_20000_0.0004_150_200_150_200.loss", "r") as f:
+with open("1000000_20000_0.0001_256_512_256_512.loss", "r") as f:
     lines = f.readlines()
 
 epochs = []

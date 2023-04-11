@@ -17,8 +17,10 @@ for line in lines:
         pass
 
 
+
+
 # 绘制loss曲线
-plt.plot(losses[300:])
+plt.plot(losses)
 plt.xlabel("Epochs")
 plt.ylabel("Loss")
 plt.title("LSTM")

@@ -2,7 +2,7 @@ import os
 import re
 
 
-def load_model(parameter, model_dir="../MODEL/LSTM/"):
+def load_model(parameter, model_dir=""):
     pattern = re.compile(rf"model_{parameter}_(\d+)\.pth")
     max_suffix = None
     max_file = None
@@ -17,6 +17,20 @@ def load_model(parameter, model_dir="../MODEL/LSTM/"):
         return model_dir + max_file
     else:
         return None
+
+
+def load_model_eve(parameter, model_dir=""):  # 返回使用model
+    pattern = re.compile(rf"model_{parameter}_(\d+)\.pth")
+    max_suffix = None
+    max_file = None
+    results = []
+    for filename in os.listdir(model_dir):
+        match = pattern.match(filename)
+        if match:
+            results.append(filename)
+
+    return results
+
 
 
 def load_dict(hyperparameter):
