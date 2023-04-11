@@ -2,7 +2,7 @@ import os
 import re
 
 
-def load_model(parameter, model_dir="../MODEL/LSTM/"):
+def load_model(parameter, model_dir=""):
     pattern = re.compile(rf"model_{parameter}_(\d+)\.pth")
     max_suffix = None
     max_file = None

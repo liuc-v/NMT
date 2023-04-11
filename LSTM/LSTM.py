@@ -47,7 +47,6 @@ class Decoder(nn.Module):
         # hidden: (num_layers, batch_size, hidden_size)
         # cell: (num_layers, batch_size, hidden_size)
         fc_output = self.fc(output.squeeze(1))
-      #  fc_output = nn.functional.softmax(fc_output, 1)
         # fc_output: (batch_size, output_size)
         return fc_output, (hidden, cell)
 

@@ -2,7 +2,7 @@ import os
 import re
 
 
-def load_model(parameter, model_dir="../MODEL/LSTM/"):
+def load_model(parameter, model_dir=""):
     pattern = re.compile(rf"model_{parameter}_(\d+)\.pth")
     max_suffix = None
     max_file = None
@@ -19,5 +19,18 @@ def load_model(parameter, model_dir="../MODEL/LSTM/"):
         return None
 
 
-print(load_model("100_20000_0.0001_150_200_150_200"))
+def load_dict(hyperparameter):
+    with open(hyperparameter+"re_word2index.txt", 'r') as f:
+        content = f.readlines()
+    dict1 = {}
+    dict2 = {}
+    for line in content:
+        words = line.split()
+        for word in words:
+            if word not in dict1:
+                dict1[word] = len(dict1)
+            if word not in dict2:
+                dict2[word] = len(dict2)
+    return dict1, dict2
+
 

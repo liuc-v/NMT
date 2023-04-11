@@ -5,7 +5,7 @@ import torch.nn as nn
 
 from TRANSFOMER import TransformerModel
 from load import load_model
-from sentence_processor import create_dict, translate, get_scores, load_data2
+from sentence_processor import create_dict, translate, get_scores, load_data2, translate_transfomer
 from MyDataset import MyDataset
 
 
@@ -49,7 +49,9 @@ if __name__ == "__main__":
     file_index.write(str(en_word2index) + "\n" + str(zh_word2index) + "\n")
     file_index.close()
 
-    if load_model(hyperparameter) is None:   # 之前没有存model
+    print(hyperparameter)
+
+    if load_model(hyperparameter, model_dir="../MODEL/TRANSFOMER") is None:   # 之前没有存model
         print("未找到历史模型，重新构建TRansfomer模型")
         model = TransformerModel(en_corpus_len, zh_corpus_len, encoder_embed, 8, 6, encoder_hidden, "cuda", 0.1)
         model = model.to(device)
@@ -75,27 +77,27 @@ if __name__ == "__main__":
     loss_file.close()
 
     loss_temp = []
-    for e in range(epoch):
-        print(start_epoch + e + 1)
-        for en_index, zh_index in dataloader:
-            output = model(en_index, zh_index)
-            loss = criterion(output[:, 1:].reshape(-1, zh_corpus_len), zh_index[:, 1:].reshape(-1))
-            loss.backward()
-            opt.step()
-            opt.zero_grad()  # 将模型的参数梯度初始化为0
-        print('epoch=' + str(start_epoch+e+1) + " " + f"loss:{loss:.8f}")
-        loss_temp.append('epoch=' + str(start_epoch + e + 1) + " " + f"loss:{loss:.8f}")
-        if (e + 1) % step_epoch == 0:
-            loss_file = open(hyperparameter + ".loss", "a+", encoding='utf-8')
-            loss_file.write('\n'.join(loss_temp))
-            loss_file.write('\n')
-            loss_file.close()
-            loss_temp = []
-            torch.save(model, "../MODEL/TRANSFOMER" + 'model_' + hyperparameter + '_' + str(e + 1 + start_epoch) + '.pth')  # 保存模型参数
-     #       print(get_scores(en_data, zh_data, en_word2index, zh_index2word, model))
+    # for e in range(epoch):
+    #     print(start_epoch + e + 1)
+    #     for en_index, zh_index in dataloader:
+    #         output = model(en_index, zh_index)
+    #         loss = criterion(output[:, 1:].reshape(-1, zh_corpus_len), zh_index[:, 1:].reshape(-1))
+    #         loss.backward()
+    #         opt.step()
+    #         opt.zero_grad()  # 将模型的参数梯度初始化为0
+    #     print('epoch=' + str(start_epoch+e+1) + " " + f"loss:{loss:.8f}")
+    #     loss_temp.append('epoch=' + str(start_epoch + e + 1) + " " + f"loss:{loss:.8f}")
+    #     if (e + 1) % step_epoch == 0:
+    #         loss_file = open(hyperparameter + ".loss", "a+", encoding='utf-8')
+    #         loss_file.write('\n'.join(loss_temp))
+    #         loss_file.write('\n')
+    #         loss_file.close()
+    #         loss_temp = []
+    #         torch.save(model, "../MODEL/TRANSFOMER/" + 'model_' + hyperparameter + '_' + str(e + 1 + start_epoch) + '.pth')  # 保存模型参数
+    #  #       print(get_scores(en_data, zh_data, en_word2index, zh_index2word, model))
+
     while True:
         sentence = input()
         sentence = ["BOS"] + nltk.word_tokenize(sentence.lower()) + ["EOS"]
-        print(translate(sentence, en_word2index, zh_index2word, model))
+        print(translate_transfomer(sentence, en_word2index, zh_index2word, model))
 
-    print(get_scores(en_data, zh_data, en_word2index, zh_index2word, model))

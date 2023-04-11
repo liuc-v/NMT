@@ -73,7 +73,7 @@ class Seq2Seq(nn.Module):
         encoder_output, (hidden, cell) = self.encoder(input_seq, hidden_cell[0], hidden_cell[1])
         input_seq = target_seq[:, 0]
         for t in range(1, target_len):
-            output, (hidden, cell) = self.decoder(input_seq.unsqueeze(1), hidden, cell, encoder_output)
+            output, (hidden, cell), alpha = self.decoder(input_seq.unsqueeze(1), hidden, cell, encoder_output)
             outputs[:, t] = output
             teacher_force = torch.rand(1) < teacher_forcing_ratio
             top1 = output.argmax(1)

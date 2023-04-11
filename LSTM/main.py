@@ -15,12 +15,12 @@ if __name__ == "__main__":
 
     # 读取参数
     [sentence_nums, word_nums, lr, encoder_embed, encoder_hidden,
-     decoder_embed, decoder_hidden, step_epoch] = list(map(float, s.split(" ")))
+     decoder_embed, decoder_hidden, step_epoch, batch_size] = list(map(float, s.split(" ")))
     [sentence_nums, word_nums, encoder_embed, encoder_hidden,
-     decoder_embed, decoder_hidden, step_epoch] = list(map(int, [sentence_nums, word_nums,
+     decoder_embed, decoder_hidden, step_epoch, batch_size] = list(map(int, [sentence_nums, word_nums,
                                                                  encoder_embed, encoder_hidden,
                                                                  decoder_embed, decoder_hidden,
-                                                                 step_epoch]))
+                                                                 step_epoch, batch_size]))
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     # 读取从文件中读取句子
@@ -33,7 +33,6 @@ if __name__ == "__main__":
     en_corpus_len = len(en_word2index)
     zh_corpus_len = len(zh_word2index)
 
-    batch_size = 2048   # 一次喂多少数据
     epoch = 10000    # 训练次数
 
     dataset = MyDataset(en_data, zh_data, en_word2index, zh_word2index)

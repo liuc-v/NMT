@@ -30,7 +30,7 @@ def load_data2(file_path, max_sentence_num=100000000):
             if i < max_sentence_num:
                 en, zh = line.split('\t')
                 english_sentences.append(["BOS"] + nltk.word_tokenize(en.lower()) + ["EOS"])
-                chinese_sentences.append(["BOS"] + list(jieba.cut(zh, cut_all=False)) + ["EOS"])
+                chinese_sentences.append(["BOS"] + list(jieba.cut(zh[:-1], cut_all=False)) + ["EOS"])
             else:
                 break
     return english_sentences, chinese_sentences
@@ -95,5 +95,29 @@ def get_scores(src_sentences, trg_sentences, en_word2index, zh_index2word, model
         print(nltk.translate.bleu_score.sentence_bleu([trg_sentences[i]], result, (1, 0, 0, 0)))
     return total_score / len(src_sentences)
 
-A = nltk.translate.bleu_score.sentence_bleu([['我', '我', '爱', '爱', '爱', '爱', 'EOS']], ['我'], (1.0, 0.0, 0.0, 0.0))
-print(A)
+
+def translate_2(sentence, en_word2index, zh_index2word, model):   # 用forward函数可以很方便地进行翻译
+    for i, word in enumerate(sentence):   # 替换未知词
+        if word not in en_word2index:
+            sentence[i] = "UNK"
+
+    en_index = torch.tensor([[en_word2index[i] for i in sentence]]).to(model.device)
+    hidden_cell = model.encoder.init_hidden_cell(1)  # 初试化
+    hidden_cell = tuple(t.to(model.device) for t in hidden_cell)  # 转移设备
+    en_output, (en_hidden, en_cell) = model.encoder(en_index, hidden_cell[0], hidden_cell[1])
+
+    de_hidden, de_cell = en_hidden, en_cell  # 初始化
+    de_input = torch.tensor([[zh_index2word.index("BOS")]]).to(model.device)
+
+    result = ["BOS"]
+    while True:
+        de_output, (de_hidden, de_cell), a= model.decoder(de_input, de_hidden, de_cell, en_output)
+        index = de_output.argmax(dim=1)
+        word = zh_index2word[index]
+        if word == "EOS" or len(result) > 200:
+            result.append("EOS")
+            break
+        result.append(word)
+        de_input = torch.tensor([[index]]).to(model.device)
+
+    return result

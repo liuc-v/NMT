@@ -30,7 +30,7 @@ def load_data2(file_path, max_sentence_num=100000000):
             if i < max_sentence_num:
                 en, zh = line.split('\t')
                 english_sentences.append(["BOS"] + nltk.word_tokenize(en.lower()) + ["EOS"])
-                chinese_sentences.append(["BOS"] + list(jieba.cut(zh, cut_all=False)) + ["EOS"])
+                chinese_sentences.append(["BOS"] + list(jieba.cut(zh[:-1], cut_all=False)) + ["EOS"])
             else:
                 break
     return english_sentences, chinese_sentences
@@ -87,6 +87,21 @@ def translate(sentence, en_word2index, zh_index2word, model):   # 用forward函�
     return result
 
 
+def translate_transfomer(sentence, en_word2index, zh_index2word, model):
+    for i, word in enumerate(sentence):   # 替换未知词
+        if word not in en_word2index:
+            sentence[i] = "UNK"
+
+    en_index = torch.tensor([[en_word2index[i] for i in sentence]]).to(model.device)
+    with torch.no_grad():  # 加快计算
+        memory = model.transformer_encoder(en_index, None)
+    de_input = torch.tensor([[zh_index2word.index("BOS")]]).to(model.device)
+    while True:
+        with torch.no_grad():  # 加快计算
+            output = model.transformer_decoder(en_index, de_input, None)
+
+
+
 def get_scores(src_sentences, trg_sentences, en_word2index, zh_index2word, model):
     total_score = 0.0
     for i in range(len(src_sentences)):
@@ -94,6 +109,3 @@ def get_scores(src_sentences, trg_sentences, en_word2index, zh_index2word, model
         total_score += nltk.translate.bleu_score.sentence_bleu([trg_sentences[i]], result, (0.25, 0.25, 0.25, 0.25))
         print(nltk.translate.bleu_score.sentence_bleu([trg_sentences[i]], result, (1, 0, 0, 0)))
     return total_score / len(src_sentences)
-
-A = nltk.translate.bleu_score.sentence_bleu([['我', '我', '爱', '爱', '爱', '爱', 'EOS']], ['我'], (1.0, 0.0, 0.0, 0.0))
-print(A)
