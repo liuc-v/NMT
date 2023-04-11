@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 
 # 从文件中读取数据
-with open("100_20000_0.0001_150_200_150_200.loss", "r") as f:
+with open("100000_20000_0.0004_150_200_150_200.loss", "r") as f:
     lines = f.readlines()
 
 epochs = []
@@ -21,5 +21,5 @@ for line in lines:
 plt.plot(losses)
 plt.xlabel("Epochs")
 plt.ylabel("Loss")
-plt.title("RNN 1000")
+plt.title("LSTM")
 plt.show()

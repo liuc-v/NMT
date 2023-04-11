@@ -2,44 +2,38 @@ import nltk
 import torch
 from torch.utils.data import DataLoader
 import torch.nn as nn
-from load import load_model
-from sentence_processor import create_dict, translate, load_data, get_scores
-from MyDataset import MyDataset
+
 from TRANSFOMER import TransformerModel
+from load import load_model
+from sentence_processor import create_dict, translate, get_scores, load_data2
+from MyDataset import MyDataset
 
 
 if __name__ == "__main__":
     f = open('param.txt', encoding='utf-8')
     s = f.readlines()[1]
     f.close()
-    print(s)
 
     # 读取参数
     [sentence_nums, word_nums, lr, encoder_embed, encoder_hidden,
-     decoder_embed, decoder_hidden, step_epoch] = list(map(float, s.split(" ")))
+     decoder_embed, decoder_hidden, step_epoch, batch_size] = list(map(float, s.split(" ")))
     [sentence_nums, word_nums, encoder_embed, encoder_hidden,
-     decoder_embed, decoder_hidden, step_epoch] = list(map(int, [sentence_nums, word_nums,
+     decoder_embed, decoder_hidden, step_epoch, batch_size] = list(map(int, [sentence_nums, word_nums,
                                                                  encoder_embed, encoder_hidden,
                                                                  decoder_embed, decoder_hidden,
-                                                                 step_epoch]))
+                                                                 step_epoch, batch_size]))
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     # 读取从文件中读取句子
-    en_data, zh_data = load_data1("../translation2019zh_train_part.json", sentence_nums)
+    en_data, zh_data = load_data2("../cmn_train.txt", sentence_nums)
 
     en_word2index, en_index2word = create_dict(en_data, word_nums)
     zh_word2index, zh_index2word = create_dict(zh_data, word_nums)
-
-    # 保存字典
-    file_index = open("re_word2index.txt", 'w', encoding='utf-8')
-    file_index.write(str(en_word2index) + "\n" + str(zh_word2index))
-    file_index.close()
 
     #  语料库的总长度
     en_corpus_len = len(en_word2index)
     zh_corpus_len = len(zh_word2index)
 
-    batch_size = 128   # 一次喂多少数据
     epoch = 10000    # 训练次数
 
     dataset = MyDataset(en_data, zh_data, en_word2index, zh_word2index)
@@ -49,17 +43,28 @@ if __name__ == "__main__":
     hyperparameter = [sentence_nums, word_nums, lr, encoder_embed, encoder_hidden,
                       decoder_embed, decoder_hidden]
     hyperparameter = list(map(str, hyperparameter))
-
     hyperparameter = "_".join(hyperparameter)
+
+    file_index = open(hyperparameter + "re_word2index.txt", 'a', encoding='utf-8')
+    file_index.write(str(en_word2index) + "\n" + str(zh_word2index) + "\n")
+    file_index.close()
+
     if load_model(hyperparameter) is None:   # 之前没有存model
-        print("未找到历史模型，重新构建TRANSFOMER模型")
-        model = TransformerModel(en_corpus_len, zh_corpus_len, encoder_embed, 8, 6)
+        print("未找到历史模型，重新构建TRansfomer模型")
+        model = TransformerModel(en_corpus_len, zh_corpus_len, encoder_embed, 8, 6, encoder_hidden, "cuda", 0.1)
         model = model.to(device)
+        model = model.to(device)
+        # # 保存字典        # !!!!!
+        # file_index = open(hyperparameter + "re_word2index.txt", 'w', encoding='utf-8')
+        # file_index.write(str(en_word2index) + "\n" + str(zh_word2index))
+        # file_index.close()
     else:   # 使用model继续
-        model_name = load_model(hyperparameter, model_dir='../MODEL//')
+        model_name = load_model(hyperparameter, model_dir='../MODEL/TRANSFOMER/')
         print("加载历史模型:" + model_name)
         model = torch.load(model_name)
         model = model.to(device)
+        # 从文件中读取单词编码表
+     #   en_word2index, en_index2word, zh_word2index, zh_index2word =
 
     opt = torch.optim.Adam(model.parameters(), lr=lr)
     criterion = nn.CrossEntropyLoss()
@@ -86,9 +91,11 @@ if __name__ == "__main__":
             loss_file.write('\n')
             loss_file.close()
             loss_temp = []
-            torch.save(model, "../MODEL/LSTM/" + 'model_' + hyperparameter + '_' + str(e + 1 + start_epoch) + '.pth')  # 保存模型参数
-            print(get_scores(en_data, zh_data, en_word2index, zh_index2word, model))
-    sentence = input()
-    sentence = ["BOS"] + nltk.word_tokenize(sentence.lower()) + ["EOS"]
-    print(translate(sentence, en_word2index, zh_index2word, model))
+            torch.save(model, "../MODEL/TRANSFOMER" + 'model_' + hyperparameter + '_' + str(e + 1 + start_epoch) + '.pth')  # 保存模型参数
+     #       print(get_scores(en_data, zh_data, en_word2index, zh_index2word, model))
+    while True:
+        sentence = input()
+        sentence = ["BOS"] + nltk.word_tokenize(sentence.lower()) + ["EOS"]
+        print(translate(sentence, en_word2index, zh_index2word, model))
+
     print(get_scores(en_data, zh_data, en_word2index, zh_index2word, model))

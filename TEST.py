@@ -62,37 +62,45 @@ from torch import nn
 # src_sentence, tgt_sentence = next(iter(train_iter))
 # a = 9
 
+# from datasets import load_dataset
+# from torch.utils.data import random_split
+#
+# torch.manual_seed(6)
+#
+# dataset = load_dataset("news_commentary", "en-zh")
+# total_count = len(dataset['train'])
+#
+# from langdetect import detect
+#
+# text = "你好，世界"
+# lang = detect("रोगाणुरोधी प्रतिरोध के ख़िलाफ़ निष्पक्ष लड़ाई")  # 'zh-cn'
+# print(lang)
+# print(total_count)
+# for i in range(total_count):
+#     if detect(dataset["train"][i]["translation"]["en"]) != 'en':
+#         print(dataset["train"][i]["translation"]["en"])
+#
+#
+# print(total_count)
+# train_count = int(0.7 * total_count)
+# valid_count = int(0.2 * total_count)
+# test_count = total_count - train_count - valid_count
+# train_dataset, valid_dataset, test_dataset = random_split(dataset['train'], [train_count, valid_count, test_count],
+#                                                           torch.Generator())
+#
+# train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=1, shuffle=True)
+# valid_loader = torch.utils.data.DataLoader(valid_dataset, batch_size=1, shuffle=False)
+# test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=1, shuffle=False)
+#
+# for batch_index, sentence in enumerate(train_loader):
+#     print(batch_index)
+#     print(sentence)
+#     # break  # 只打印第一个批次
+# from torchtext.data import Field
+#
+# DE = Field(tokenize='spacy', init_token='<sos>', eos_token='<eos>', lower=True)
+# EN = Field(tokenize='spacy', init_token='<sos>', eos_token='<eos>', lower=True)
+
+
 from datasets import load_dataset
-from torch.utils.data import random_split
-
-torch.manual_seed(6)
-
-dataset = load_dataset("news_commentary", "en-zh")
-total_count = len(dataset['train'])
-
-from langdetect import detect
-
-text = "你好，世界"
-lang = detect("रोगाणुरोधी प्रतिरोध के ख़िलाफ़ निष्पक्ष लड़ाई")  # 'zh-cn'
-print(lang)
-for i in range(total_count):
-    if detect(dataset["train"][i]["translation"]["en"]) != 'en':
-        print(dataset["train"][i]["translation"]["en"])
-
-
-print(total_count)
-train_count = int(0.7 * total_count)
-valid_count = int(0.2 * total_count)
-test_count = total_count - train_count - valid_count
-train_dataset, valid_dataset, test_dataset = random_split(dataset['train'], [train_count, valid_count, test_count],
-                                                          torch.Generator())
-
-train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=1, shuffle=True)
-valid_loader = torch.utils.data.DataLoader(valid_dataset, batch_size=1, shuffle=False)
-test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=1, shuffle=False)
-
-for batch_index, sentence in enumerate(train_loader):
-    print(batch_index)
-    print(sentence)
-    # break  # 只打印第一个批次
-
+train_data, valid_data, test_data = load_dataset('multi30k', 'de')

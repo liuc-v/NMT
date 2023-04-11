@@ -6,7 +6,7 @@ import nltk
 import torch
 
 
-def load_data(file_path, max_sentence_num=100000000):
+def load_data1(file_path, max_sentence_num=100000000):
     english_sentences = []
     chinese_sentences = []
     with open(file_path, 'r', encoding='utf-8') as f:
@@ -21,6 +21,19 @@ def load_data(file_path, max_sentence_num=100000000):
                 break
     return english_sentences, chinese_sentences
 
+
+def load_data2(file_path, max_sentence_num=100000000):
+    english_sentences = []
+    chinese_sentences = []
+    with open(file_path, 'r', encoding='utf-8') as f:
+        for i, line in enumerate(f):
+            if i < max_sentence_num:
+                en, zh = line.split('\t')
+                english_sentences.append(["BOS"] + nltk.word_tokenize(en.lower()) + ["EOS"])
+                chinese_sentences.append(["BOS"] + list(jieba.cut(zh, cut_all=False)) + ["EOS"])
+            else:
+                break
+    return english_sentences, chinese_sentences
 
 def create_dict(sentences, max_word_num=100000000):   #
     # 统计文本中每个词出现的频数，并用出现次数最多的max_words个词创建词典，
@@ -78,5 +91,9 @@ def get_scores(src_sentences, trg_sentences, en_word2index, zh_index2word, model
     total_score = 0.0
     for i in range(len(src_sentences)):
         result = translate(src_sentences[i], en_word2index, zh_index2word, model)
-        total_score += nltk.translate.bleu_score.sentence_bleu([trg_sentences[i]], result, (1, 0, 0, 0))
+        total_score += nltk.translate.bleu_score.sentence_bleu([trg_sentences[i]], result, (0.25, 0.25, 0.25, 0.25))
+        print(nltk.translate.bleu_score.sentence_bleu([trg_sentences[i]], result, (1, 0, 0, 0)))
     return total_score / len(src_sentences)
+
+A = nltk.translate.bleu_score.sentence_bleu([['我', '我', '爱', '爱', '爱', '爱', 'EOS']], ['我'], (1.0, 0.0, 0.0, 0.0))
+print(A)

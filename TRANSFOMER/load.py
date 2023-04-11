@@ -2,11 +2,11 @@ import os
 import re
 
 
-def load_model(parameter):
+def load_model(parameter, model_dir="../MODEL/LSTM/"):
     pattern = re.compile(rf"model_{parameter}_(\d+)\.pth")
     max_suffix = None
     max_file = None
-    for filename in os.listdir('./'):
+    for filename in os.listdir(model_dir):
         match = pattern.match(filename)
         if match:
             suffix = int(match.group(1))
@@ -14,10 +14,23 @@ def load_model(parameter):
                 max_suffix = suffix
                 max_file = filename
     if max_file:
-        return max_file
+        return model_dir + max_file
     else:
         return None
 
 
-print(load_model("100_20000_0.0001_150_200_150_200"))
+def load_dict(hyperparameter):
+    with open(hyperparameter+"re_word2index.txt", 'r') as f:
+        content = f.readlines()
+    dict1 = {}
+    dict2 = {}
+    for line in content:
+        words = line.split()
+        for word in words:
+            if word not in dict1:
+                dict1[word] = len(dict1)
+            if word not in dict2:
+                dict2[word] = len(dict2)
+    return dict1, dict2
+
 

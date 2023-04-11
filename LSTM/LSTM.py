@@ -3,7 +3,7 @@ import torch.nn as nn
 
 
 class Encoder(nn.Module):
-    def __init__(self, input_size, hidden_size, embedding_dim=100, num_layers=1, dropout=0.0):
+    def __init__(self, input_size, hidden_size=256, embedding_dim=128, num_layers=2, dropout=0.1):
         super(Encoder, self).__init__()
         self.hidden_size = hidden_size
         self.num_layers = num_layers
@@ -27,7 +27,7 @@ class Encoder(nn.Module):
 
 
 class Decoder(nn.Module):
-    def __init__(self, output_size, hidden_size, embedding_dim=100, num_layers=1, dropout=0.0):
+    def __init__(self, output_size, hidden_size=256, embedding_dim=128, num_layers=2, dropout=0.1):
         super(Decoder, self).__init__()
         self.hidden_size = hidden_size
         self.num_layers = num_layers
