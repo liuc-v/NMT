@@ -33,21 +33,21 @@ def split(full_list, shuffle=False, ratio=0.2):
     return sublist_1, sublist_2
 
 
-sublist_1, sublist_2 = split(results, shuffle=True, ratio=0.7) # 按照 0.2 的比例分割
+sublist_1, sublist_2 = split(results, shuffle=True, ratio=0.9) # 按照 0.9 的比例分割
 print(len(sublist_1))
 print(len(sublist_2))
-sublist_3, sublist_4 = split(sublist_2, shuffle=True, ratio=0.66666) # 按照 0.375 的比例分割
+sublist_3, sublist_4 = split(sublist_2, shuffle=True, ratio=0.5)  # 按照 0.5 的比例分割
 print(len(sublist_3))
 print(len(sublist_4))
 
-with open("cmn_train.txt", 'w', encoding='utf-8') as f:
+with open("cmn_train_2.txt", 'w', encoding='utf-8') as f:
     for a in sublist_1:
         f.write(a)
 
-with open("cmn_valid.txt", 'w', encoding='utf-8') as f:
+with open("cmn_valid_2.txt", 'w', encoding='utf-8') as f:
     for a in sublist_3:
         f.write(a)
 
-with open("cmn_test.txt", 'w', encoding='utf-8') as f:
+with open("cmn_test_2.txt", 'w', encoding='utf-8') as f:
     for a in sublist_4:
         f.write(a)

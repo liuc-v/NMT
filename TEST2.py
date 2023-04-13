@@ -5,16 +5,16 @@ import torch.nn.functional as F
 import math
 
 
-def generate_masks(src, tgt, device):
-    src_mask = (src != 0).unsqueeze(-2).to(device)  # batch_size x 1 x seq_len_src
-    tgt_mask = (tgt != 0).unsqueeze(-2).to(device)  # batch_size x 1 x seq_len_tgt
+def generate_masks(src, tgt, src_padding, trg_padding, device):
+    src_mask = (src != src_padding).unsqueeze(-2).to(device)  # batch_size x 1 x seq_len_src
+    tgt_mask = (tgt != trg_padding).unsqueeze(-2).to(device)  # batch_size x 1 x seq_len_tgt
     tgt_mask = tgt_mask & subsequent_mask(tgt.size(-1)).to(device)  # batch_size x seq_len_tgt x seq_len_tgt
     memory_mask = src_mask.unsqueeze(1)  # batch_size x 1 x seq_len_src
     return src_mask, tgt_mask, memory_mask
 
 
 def subsequent_mask(size):
-    "Mask out subsequent positions."
+    # "Mask out subsequent positions."
     attn_shape = (1, size, size)
     subsequent = np.triu(np.ones(attn_shape), k=1).astype('uint8')
     return torch.from_numpy(subsequent) == 0    # 返回上三角矩阵，并转为bool型tensor
@@ -45,6 +45,7 @@ class PositionalEncoding(nn.Module):
         # 对结果进行dropout处理
         return self.dropout(x)
 
+
 class TransformerModel(nn.Module):
     def __init__(self, input_vocab_size, output_vocab_size, d_model, n_head, num_layers, dim_feedforward, device, dropout=0.1):
         super(TransformerModel, self).__init__()
@@ -73,12 +74,37 @@ class TransformerModel(nn.Module):
         self.fc.bias.data.zero_()
         self.fc.weight.data.uniform_(-initrange, initrange)
 
-    def forward(self, src, tgt, src_mask=None, tgt_mask=None, memory_mask=None):
+    def forward(self, src, tgt, src_padding, trg_padding):
         src = self.encoder_embedding(src) * math.sqrt(self.d_model)
         src = self.pos_encoder(src)
-        memory = self.transformer_encoder(src, src_mask)
+
+
         tgt = self.decoder_embedding(tgt) * math.sqrt(self.d_model)
         tgt = self.pos_encoder(tgt)
         output = self.transformer_decoder(tgt, memory, tgt_mask, memory_mask)
         output = self.fc(output)
         return output
+
+
+def generate_masks2(src, tgt, src_padding, trg_padding, device):
+    print((src != src_padding).shape)
+    src_mask = (src != src_padding).unsqueeze(-2)
+    print(src_mask.shape)
+    if tgt is not None:
+        tgt_mask = (tgt != trg_padding).unsqueeze(-2)
+        size = tgt.size(-1)
+        tgt_mask = tgt_mask & torch.tril(torch.ones((size, size), device=device)).bool()
+        memory_mask = src_mask.unsqueeze(1)
+    else:
+        tgt_mask = None
+        memory_mask = None
+    return src_mask, tgt_mask, memory_mask
+
+# src = torch.randint(0, 10, [8, 40])
+# tgt = torch.randint(0, 10, [8, 40])
+#
+# mask = src_mask, tgt_mask, memory_mask = generate_masks(src, tgt, src_padding=0, trg_padding=0,device="cpu")
+# print(mask[0].shape)
+# print(mask[1].shape)
+# print(mask[2].shape)
+# print(mask)

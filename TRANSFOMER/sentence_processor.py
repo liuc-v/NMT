@@ -92,13 +92,32 @@ def translate_transfomer(sentence, en_word2index, zh_index2word, model):
         if word not in en_word2index:
             sentence[i] = "UNK"
 
-    en_index = torch.tensor([[en_word2index[i] for i in sentence]]).to(model.device)
-    with torch.no_grad():  # 加快计算
-        memory = model.transformer_encoder(en_index, None)
-    de_input = torch.tensor([[zh_index2word.index("BOS")]]).to(model.device)
-    while True:
-        with torch.no_grad():  # 加快计算
-            output = model.transformer_decoder(en_index, de_input, None)
+    src = torch.tensor([[en_word2index[i] for i in sentence]]).to(model.device)
+    trg = torch.tensor([[zh_index2word.index("BOS")]]).to(model.device)
+    result = ['BOS']
+    for i in range(200):
+        # 获取模型预测结果
+        output = model(src, trg)
+        index = output[0][-1].argmax()
+        word = zh_index2word[index]
+        result.append(word)
+        if word == "EOS":  # 最后一个值是EOS
+            break
+        trg = torch.cat([trg, torch.tensor([[index]]).to(model.device)], dim=1)
+     #   trg = torch.tensor([[index]]).to(model.device)
+
+        # # 获取模型预测结果
+        # output = model(src, trg)
+        # print(output[0][i].shape)
+        # index = output[0][-1].argmax()  # 最后一个值是EOS
+        # word = zh_index2word[index]
+        # if word == "EOS":
+        #     break
+        # trg = torch.cat([trg, torch.tensor([[index]])], dim=1)
+        # de_input = torch.tensor([[index]]).to(model.device)
+
+        # 将当前解码结果添加到张量中，进行下一轮解码
+    return result
 
 
 

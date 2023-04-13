@@ -20,15 +20,17 @@ def load_model(parameter, model_dir=""):
 
 
 def load_model_eve(parameter, model_dir=""):  # 返回使用model
-    pattern = re.compile(rf"model_{parameter}_(\d+)\.pth")
-    max_suffix = None
-    max_file = None
     results = []
-    for filename in os.listdir(model_dir):
-        match = pattern.match(filename)
-        if match:
+    filenames = os.listdir(model_dir)
+    print(filenames)
+    epoches = 0
+    while True:
+        filename = "model_" + parameter + "_" + str(epoches) + ".pth"
+        if filename in filenames:
             results.append(filename)
-
+        epoches += 1
+        if epoches > 10000:
+            break
     return results
 
 

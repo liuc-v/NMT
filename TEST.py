@@ -102,5 +102,25 @@ from torch import nn
 # EN = Field(tokenize='spacy', init_token='<sos>', eos_token='<eos>', lower=True)
 
 
-from datasets import load_dataset
-train_data, valid_data, test_data = load_dataset('multi30k', 'de')
+# from datasets import load_dataset
+# train_data, valid_data, test_data = load_dataset('multi30k', 'de')
+
+# import torchtext
+# from torchtext.datasets import TranslationDataset
+# from torchtext.data import Field, BucketIterator
+#
+# # 定义源语言和目标语言的 Field
+# src = Field(tokenize='spacy', tokenizer_language='en', init_token='<sos>', eos_token='<eos>', lower=True)
+# tgt = Field(tokenize='moses', tokenizer_language='de', init_token='<sos>', eos_token='<eos>', lower=True)
+#
+# # 加载训练集、验证集、测试集
+# train_data, valid_data, test_data = torchtext.datasets.WMT14(
+#     root='data',
+#     exts=('.en', '.de'),
+#     fields=(src, tgt))
+
+# 创建一个mask，形状为(10, 10)，其中对角线以下的元素为-inf，表示因果关系
+mask = torch.triu(torch.ones(10, 10)) * -float('inf')
+print(mask)
+mask = mask.masked_fill(mask == 0, float(0.0))
+print(mask)

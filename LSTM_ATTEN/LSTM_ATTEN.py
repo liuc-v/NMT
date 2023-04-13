@@ -23,6 +23,26 @@ class Encoder(nn.Module):
 class Attention(nn.Module):
     def __init__(self, hidden_size):
         super(Attention, self).__init__()
+        self.hidden_size = hidden_size
+        self.W = nn.Linear(3 * hidden_size, hidden_size)
+        self.v = nn.Linear(hidden_size, 1)
+
+    def forward(self, decoder_hidden, encoder_output):
+        # Compute attention score
+        attention_score = self.v(torch.tanh(self.W(torch.cat((decoder_hidden.expand(encoder_output.size(1), -1, -1).transpose(0, 1), encoder_output), dim=-1))))
+
+        # Compute attention weights
+        attention_weights = torch.softmax(attention_score, dim=1)
+
+        # Compute context vector
+        context_vector = torch.sum(attention_weights * encoder_output, dim=1)
+
+        return context_vector
+
+
+class Attention(nn.Module):
+    def __init__(self, hidden_size):
+        super(Attention, self).__init__()
         self.U = nn.Linear(hidden_size, hidden_size, bias=False)
         self.W = nn.Linear(hidden_size, hidden_size, bias=False)
         self.v = nn.Linear(hidden_size, 1, bias=False)
@@ -49,11 +69,11 @@ class Decoder(nn.Module):
 
     def forward(self, input_seq, hidden, cell, encoder_outputs):
         embedded = self.dropout(self.embedding(input_seq))
-        context_vector, alpha = self.attention(hidden[-1], encoder_outputs)  # 计算context vector 和注意力权重
+        context_vector = self.attention(hidden[-1], encoder_outputs)  # 计算context vector 和注意力权重
         lstm_input = torch.cat([embedded, context_vector.unsqueeze(1)], dim=-1)  # 连接embedding和context vector
         output, (hidden, cell) = self.lstm(lstm_input, (hidden, cell))
         fc_output = self.fc(output.squeeze(1))
-        return fc_output, (hidden, cell), alpha
+        return fc_output, (hidden, cell)
 
 
 class Seq2Seq(nn.Module):
@@ -73,7 +93,7 @@ class Seq2Seq(nn.Module):
         encoder_output, (hidden, cell) = self.encoder(input_seq, hidden_cell[0], hidden_cell[1])
         input_seq = target_seq[:, 0]
         for t in range(1, target_len):
-            output, (hidden, cell), alpha = self.decoder(input_seq.unsqueeze(1), hidden, cell, encoder_output)
+            output, (hidden, cell) = self.decoder(input_seq.unsqueeze(1), hidden, cell, encoder_output)
             outputs[:, t] = output
             teacher_force = torch.rand(1) < teacher_forcing_ratio
             top1 = output.argmax(1)

@@ -3,7 +3,7 @@ import torch
 from torch.utils.data import DataLoader
 import torch.nn as nn
 
-from TRANSFOMER import TransformerModel
+from TRANSFOMER_bak import TransformerModel
 from load import load_model
 from sentence_processor import create_dict, translate, get_scores, load_data2, translate_transfomer
 from MyDataset import MyDataset
@@ -81,6 +81,8 @@ if __name__ == "__main__":
     #     print(start_epoch + e + 1)
     #     for en_index, zh_index in dataloader:
     #         output = model(en_index, zh_index)
+    #         print(output.shape)
+    #         print(zh_index.shape)
     #         loss = criterion(output[:, 1:].reshape(-1, zh_corpus_len), zh_index[:, 1:].reshape(-1))
     #         loss.backward()
     #         opt.step()
@@ -100,4 +102,3 @@ if __name__ == "__main__":
         sentence = input()
         sentence = ["BOS"] + nltk.word_tokenize(sentence.lower()) + ["EOS"]
         print(translate_transfomer(sentence, en_word2index, zh_index2word, model))
-
