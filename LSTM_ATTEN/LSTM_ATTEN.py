@@ -40,22 +40,6 @@ class Attention(nn.Module):
         return context_vector
 
 
-class Attention(nn.Module):
-    def __init__(self, hidden_size):
-        super(Attention, self).__init__()
-        self.U = nn.Linear(hidden_size, hidden_size, bias=False)
-        self.W = nn.Linear(hidden_size, hidden_size, bias=False)
-        self.v = nn.Linear(hidden_size, 1, bias=False)
-
-    def forward(self, decoder_hidden, encoder_outputs):
-        U_h = self.U(decoder_hidden.unsqueeze(1))
-        W_s = self.W(encoder_outputs)
-        att = self.v(torch.tanh(U_h + W_s)).squeeze(-1)
-        alpha = torch.softmax(att, dim=1)
-        context_vector = torch.bmm(alpha.unsqueeze(1), encoder_outputs).squeeze(1)
-        return context_vector, alpha
-
-
 class Decoder(nn.Module):
     def __init__(self, output_size, hidden_size, embedding_dim=100, num_layers=1, dropout=0.0):
         super(Decoder, self).__init__()

@@ -111,7 +111,7 @@ def translate_2(sentence, en_word2index, zh_index2word, model):   # ç”¨forwardå‡
 
     result = ["BOS"]
     while True:
-        de_output, (de_hidden, de_cell), a = model.decoder(de_input, de_hidden, de_cell, en_output)
+        de_output, (de_hidden, de_cell) = model.decoder(de_input, de_hidden, de_cell, en_output)
         index = de_output.argmax(dim=1)
         word = zh_index2word[index]
         if word == "EOS" or len(result) > 200:

@@ -88,23 +88,21 @@ def translate(sentence, en_word2index, zh_index2word, model):   # 用forward函�
 
 
 def translate_transfomer(sentence, en_word2index, zh_index2word, model):
+    model.eval()
     for i, word in enumerate(sentence):   # 替换未知词
         if word not in en_word2index:
             sentence[i] = "UNK"
 
     src = torch.tensor([[en_word2index[i] for i in sentence]]).to(model.device)
-    trg = torch.tensor([[zh_index2word.index("BOS")]]).to(model.device)
+    output = torch.tensor([[zh_index2word.index("BOS")]]).to(model.device)
     result = ['BOS']
-    for i in range(200):
-        # 获取模型预测结果
-        output = model(src, trg)
-        index = output[0][-1].argmax()
-        word = zh_index2word[index]
-        result.append(word)
-        if word == "EOS":  # 最后一个值是EOS
-            break
-        trg = torch.cat([trg, torch.tensor([[index]]).to(model.device)], dim=1)
-     #   trg = torch.tensor([[index]]).to(model.device)
+    # with torch.no_grad():
+    #     enc_src = model.src_embedding(src_tensor)
+    #     for i in range(200):
+    #         # 获取模型预测结果
+    #
+    #         if word == "EOS":  # 最后一个值是EOS
+    #             break
 
         # # 获取模型预测结果
         # output = model(src, trg)
@@ -118,7 +116,6 @@ def translate_transfomer(sentence, en_word2index, zh_index2word, model):
 
         # 将当前解码结果添加到张量中，进行下一轮解码
     return result
-
 
 
 def get_scores(src_sentences, trg_sentences, en_word2index, zh_index2word, model):

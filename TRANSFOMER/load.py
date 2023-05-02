@@ -19,6 +19,22 @@ def load_model(parameter, model_dir=""):
         return None
 
 
+def load_model_eve(parameter, model_dir=""):  # 返回使用model
+    results = []
+    filenames = os.listdir(model_dir)
+    print(filenames)
+    epoches = 0
+    while True:
+        filename = "model_" + parameter + "_" + str(epoches) + ".pth"
+        if filename in filenames:
+            results.append(filename)
+        epoches += 1
+        if epoches > 10000:
+            break
+    return results
+
+
+
 def load_dict(hyperparameter):
     with open(hyperparameter+"re_word2index.txt", 'r') as f:
         content = f.readlines()

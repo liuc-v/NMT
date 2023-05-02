@@ -72,12 +72,15 @@ if __name__ == "__main__":
     loss_file.close()
 
     loss_temp = []
-    models = load_model_eve(hyperparameter, model_dir=model_dir)
-    print(models)
-    for model_name in models:
-        model = torch.load(model_dir + model_name)
-        # train_loss = train(model, dataloader, criterion, opt, zh_corpus_len)
-        # loss_temp.append(train_loss.item())
-        valid_loss = valid(model, valid_dataloader, criterion, zh_corpus_len)
-
-        print("valid_loss:" + str(valid_loss.item()))
+    # models = load_model_eve(hyperparameter, model_dir=model_dir)
+    # print(models)
+    # for model_name in models:
+    #     model = torch.load(model_dir + model_name)
+    #     # train_loss = train(model, dataloader, criterion, opt, zh_corpus_len)
+    #     # loss_temp.append(train_loss.item())
+    #     valid_loss = valid(model, valid_dataloader, criterion, zh_corpus_len)
+    #
+    #     print("valid_loss:" + str(valid_loss.item()))
+    model = load_model(hyperparameter, model_dir=model_dir)
+    model = torch.load(model_dir + model)
+    for sentences in
