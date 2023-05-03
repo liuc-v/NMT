@@ -106,4 +106,5 @@ if __name__ == "__main__":
     while True:
         sentence = input()
         sentence = ["BOS"] + nltk.word_tokenize(sentence.lower()) + ["EOS"]
-        print(translate_transfomer(sentence, en_word2index, zh_index2word, model))
+        print(translate_tra
+        nsfomer(sentence, en_word2index, zh_index2word, model))
